@@ -1,20 +1,36 @@
 import pandas as pd
+from models import Atleta
+
 
 rota1 = 'archive/athlete_events.csv'
 rota2 = 'archive/noc_regions.csv'
 
 dados_atletas = pd.read_csv(rota1)
 
-verao = ['Summer']
-inverno = ['Winter']
-atletas_verao = dados_atletas[dados_atletas['Season'].isin(verao)]
-atletas_inverno = dados_atletas[dados_atletas['Season'].isin(inverno)]
+atletas = []
 
+for _, linha in dados_atletas.iterrows():
+    atleta = Atleta(
+        id=int(linha['ID']),
+        nome=linha['Name'],
+        nacionalidade=linha['NOC'],
+        season=linha['Season'],
+        esport=linha['Sport'],
+        medalha=linha['Medal'] if pd.notna(linha['Medal']) else 'None',
+        ano=linha['Year']
+    )
+    atletas.append(atleta)
 
-medalhas = ['Gold', 'Silver', 'Bronze']
+atletas_com_medalhas = [atleta for atleta in atletas if atleta.medalha != 'None']
 
-atletas_medalistas_verao = atletas_verao[atletas_verao['Medal'].isin(medalhas)]
-atletas_medalistas_inverno = atletas_inverno[atletas_inverno['Medal'].isin(medalhas)]
+# Filtrar atletas por temporada
+atletas_verao = [atleta for atleta in atletas_com_medalhas if atleta.season == 'Summer']
+atletas_inverno = [atleta for atleta in atletas_com_medalhas if atleta.season == 'Winter']
 
+print("Atletas de Verão:")
+for atleta in atletas_verao[:5]:  # Imprimir os primeiros 5 atletas de verão
+    print(atleta)
 
-print(atletas_medalistas_verao.head(),atletas_medalistas_inverno.head())
+print("\nAtletas de Inverno:")
+for atleta in atletas_inverno[:5]:  # Imprimir os primeiros 5 atletas de inverno
+    print(atleta)
