@@ -1,12 +1,33 @@
+
 class Atleta:
-    def __init__(self, id: int, nome: str, nacionalidade: str, season: str, esport: str, medalha: str, ano: str):
+    def __init__(self, id, nome, pais, season, esport, medalha, ano):
         self.id = id
         self.nome = nome
-        self.nacionalidade = nacionalidade
+        self.pais = pais
         self.season = season
         self.esport = esport
         self.medalha = medalha
         self.ano = ano
-    def __str__(self) -> str:
-        return (f"ID: {self.id}, Nome: {self.nome}, Nacionalidade: {self.nacionalidade}, "
-                f"Temporada: {self.season}, Esporte: {self.esport}, Medalha: {self.medalha}, Ano: {self.ano}")
+        self.medalhas = {'Gold': 0, 'Silver': 0, 'Bronze': 0}
+
+        if medalha in self.medalhas:
+            self.medalhas[medalha] += 1
+
+    def __str__(self):
+        return f"{self.nome} ({self.pais.nome}) - Medalhas: {self.medalhas}"
+
+
+class Pais:
+    def __init__(self, id, nome):
+        self.id = id
+        self.nome = nome
+        self.atletas = []
+        self.medalhas = {'Gold': 0, 'Silver': 0, 'Bronze': 0}
+
+    def adicionar_atleta(self, atleta):
+        self.atletas.append(atleta)
+        for tipo_medalha, quantidade in atleta.medalhas.items():
+            self.medalhas[tipo_medalha] += quantidade
+
+    def __str__(self):
+        return f"{self.nome} - Medalhas: {self.medalhas}"
