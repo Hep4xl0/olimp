@@ -1,4 +1,3 @@
-
 class Atleta:
     def __init__(self, id, nome, pais, season, esport, medalha, ano):
         self.id = id
@@ -16,7 +15,6 @@ class Atleta:
     def __str__(self):
         return f"{self.nome} ({self.pais.nome}) - Medalhas: {self.medalhas}"
 
-
 class Pais:
     def __init__(self, id, nome):
         self.id = id
@@ -26,8 +24,10 @@ class Pais:
 
     def adicionar_atleta(self, atleta):
         self.atletas.append(atleta)
-        for tipo_medalha, quantidade in atleta.medalhas.items():
-            self.medalhas[tipo_medalha] += quantidade
+        if atleta.medalha in self.medalhas:
+            self.medalhas[atleta.medalha] += 1
+        else:
+            self.medalhas[atleta.medalha] = 1  # Adiciona medalhas não esperadas
 
     def __str__(self):
         return f"{self.nome} - Medalhas: {self.medalhas}"

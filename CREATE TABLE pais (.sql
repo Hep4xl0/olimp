@@ -4,12 +4,14 @@ CREATE TABLE pais (
 );
 
 CREATE TABLE atleta (
-    id INT PRIMARY KEY,  -- ID do atleta
-    nome VARCHAR(100) NOT NULL,
-    pais_id VARCHAR(3),  -- Relaciona-se com a coluna 'id' da tabela pais
-    season ENUM('Summer', 'Winter') NOT NULL,  -- Assume que as estações são apenas 'Summer' ou 'Winter'
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_atleta INT,
+    nome VARCHAR(300) NOT NULL,
+    time VARCHAR(200) NOT NULL,
+    pais_id VARCHAR(3),
+    season ENUM('Summer', 'Winter') NOT NULL,
     esport VARCHAR(100) NOT NULL,
     medalha ENUM('Gold', 'Silver', 'Bronze', 'None') DEFAULT 'None',
     ano INT NOT NULL,
-    FOREIGN KEY (pais_id) REFERENCES pais(id)
+    cidade VARCHAR(150) NOT NULL
 );
