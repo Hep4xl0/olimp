@@ -11,5 +11,5 @@ def filtrar_pais_estacao(pais_dict, estacao):
             paises_filtrado = Pais(id=pais.id, nome=pais.nome)
             for atleta in atletas_filtro:
                 paises_filtrado.adicionar_atleta(atleta)
-            paises_filtro[pais.id] = paises_filtrado
+            paises_filtro[pais.id] = paises_filtrado    
     return paises_filtro
