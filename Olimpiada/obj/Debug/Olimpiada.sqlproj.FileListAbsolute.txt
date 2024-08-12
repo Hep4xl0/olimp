@@ -1,0 +1,10 @@
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\bin\Debug\Olimpiada.dacpac
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\bin\Debug\Olimpiada.dll
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\bin\Debug\Olimpiada.pdb
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\Olimpiada.sqlproj.AssemblyReference.cache
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\Model.xml
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\refactor.xml
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\postdeploy.sql
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\predeploy.sql
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\Olimpiada.dll
+c:\Users\Pichau\OneDrive\Documents\GitHub\Global\olimp\Olimpiada\obj\Debug\Olimpiada.pdb
