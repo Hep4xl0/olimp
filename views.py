@@ -56,8 +56,19 @@ def obter_anos_validos():
     anos = db.session.query(Atleta.ano).distinct().order_by(Atleta.ano).all()
     return [ano[0] for ano in anos]
 
-def esporte_exibir():
+def obter_esportes_por_ano():
+    esportes_por_ano = db.session.query(
+        Atleta.ano,
+        Atleta.esport
+    ).distinct().order_by(Atleta.ano, Atleta.esport).all()
 
+    esportes_dict = {}
+    for ano, esport in esportes_por_ano:
+        if ano not in esportes_dict:
+            esportes_dict[ano] = []
+        esportes_dict[ano].append(esport)
+    
+    return esportes_dict
 
 @app.route('/', methods=['GET'])
 def index():
