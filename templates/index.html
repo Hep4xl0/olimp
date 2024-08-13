@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medalhas por Time</title>
+</head>
+<body>
+    <h1>Medalhas por Time</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Ouro</th>
+                <th>Prata</th>
+                <th>Bronze</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for time, medalhas in medalhas.items() %}
+                <tr>
+                    <td>{{ time }}</td>
+                    <td>{{ medalhas['Gold'] }}</td>
+                    <td>{{ medalhas['Silver'] }}</td>
+                    <td>{{ medalhas['Bronze'] }}</td>
+                    <td>{{ medalhas['Total'] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

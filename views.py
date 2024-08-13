@@ -1,79 +1,55 @@
-import pandas as pd
-import mysql.connector
-from mysql.connector import Error
+from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 
-def carregar_dados():
-    rota1 = 'archive/athlete_events.csv'
-    rota2 = 'archive/noc_regions.csv'
+# Configuração do Flask
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:123123@localhost/olimpiada_sql'  # Substitua pelos valores apropriados
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    dados_atletas = pd.read_csv(rota1)
-    dados_paises = pd.read_csv(rota2)
-    return dados_atletas, dados_paises
+# Inicialização do SQLAlchemy
+db = SQLAlchemy(app)
 
-def criar_paises(conexao, dados_paises):
-    cursor = conexao.cursor()
-    pais_dict = {}
-    nocs_inseridos = set()
+class Atleta(db.Model):
+    __tablename__ = 'atleta'
 
-    for _, linha in dados_paises.iterrows():
-        noc = linha['NOC'] if pd.notna(linha['NOC']) else 'Unknown'
-        region = linha['region'] if pd.notna(linha['region']) else 'Unknown'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_atleta = db.Column(db.Integer)
+    nome = db.Column(db.String(300), nullable=False)
+    time = db.Column(db.String(200), nullable=False)
+    pais_id = db.Column(db.String(3))
+    season = db.Column(db.Enum('Summer', 'Winter'), nullable=False)
+    esport = db.Column(db.String(100), nullable=False)
+    medalha = db.Column(db.Enum('Gold', 'Silver', 'Bronze', 'None'), default='None')
+    ano = db.Column(db.Integer, nullable=False)
+    cidade = db.Column(db.String(150), nullable=False)
 
-        if noc not in nocs_inseridos:
-            try:
-                cursor.execute("INSERT INTO Pais (id, nome) VALUES (%s, %s)", (noc, region))
-                pais = Pais(id=noc, nome=region)
-                pais_dict[noc] = pais
-                nocs_inseridos.add(noc)
-            except Error as e:
-                print(f"Erro ao inserir o país {noc}: {e}")
+def contar_medalhas_por_time():
+    resultado = db.session.query(
+        Atleta.time,
+        Atleta.medalha,
+        func.count().label('total_medalhas')
+    ).filter(
+        Atleta.medalha != 'None'  # Ignorar entradas sem medalha
+    ).group_by(
+        Atleta.time,
+        Atleta.medalha
+    ).all()
 
-    conexao.commit()
-    cursor.close()
-    return pais_dict
+    medalhas_por_time = {}
+    for time, medalha, total_medalhas in resultado:
+        if time not in medalhas_por_time:
+            medalhas_por_time[time] = {'Gold': 0, 'Silver': 0, 'Bronze': 0, 'Total': 0}
+        
+        medalhas_por_time[time][medalha] = total_medalhas
+        medalhas_por_time[time]['Total'] += total_medalhas
 
-def criar_atletas(conexao, dados_atletas, pais_dict):
-    cursor = conexao.cursor()
-    atleta_sql = """
-        INSERT INTO Atleta (id, nome, pais_id, season, esporte, medalha, ano) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """
-    atletas = []
+    return medalhas_por_time
 
-    for _, linha in dados_atletas.iterrows():
-        if linha['NOC'] in pais_dict:
-            pais = pais_dict[linha['NOC']]
-            atleta = Atleta(
-                id=int(linha['ID']),
-                nome=linha['Name'],
-                pais=pais,
-                season=linha['Season'],
-                esport=linha['Sport'],
-                medalha=linha['Medal'] if pd.notna(linha['Medal']) else 'None',
-                ano=int(linha['Year']) if pd.notna(linha['Year']) else None
-            )
-            atletas.append((atleta.id, atleta.nome, atleta.pais.id, atleta.season, atleta.esport, atleta.medalha, atleta.ano))
-            pais.adicionar_atleta(atleta)
+@app.route('/', methods=['GET'])
+def index():
+    medalhas_por_time = contar_medalhas_por_time()
+    return render_template('index.html', medalhas=medalhas_por_time)
 
-    try:
-        cursor.executemany(atleta_sql, atletas)
-        conexao.commit()
-        print("Dados dos atletas inseridos com sucesso.")
-    except Error as e:
-        print(f"Erro ao inserir os atletas: {e}")
-    finally:
-        cursor.close()
-
-def filtrar_atleta_estacao(atletas, estacao):
-    return [atleta for atleta in atletas if atleta.season == estacao]
-
-def filtrar_pais_estacao(pais_dict, estacao):
-    paises_filtro = {}
-    for pais in pais_dict.values():
-        atletas_filtro = filtrar_atleta_estacao(pais.atletas, estacao)
-        if atletas_filtro:
-            pais_filtrado = Pais(id=pais.id, nome=pais.nome)
-            for atleta in atletas_filtro:
-                pais_filtrado.adicionar_atleta(atleta)
-            paises_filtro[pais_filtrado.id] = pais_filtrado
-    return paises_filtro
+if __name__ == '__main__':
+    app.run()

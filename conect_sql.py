@@ -1,47 +1,68 @@
 import mysql.connector
+from mysql.connector import Error
 import pandas as pd
-from models import Pais, Atleta
+
 
 def conectar_bd():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="123123",
-        database="olimpiada_sql"
-    )
+    try:
+        conexao = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='123123',
+            database='olimpiada_sql'
+        )
+        if conexao.is_connected():
+            print("Conectado ao banco de dados MySQL")
+            return conexao
+    except Error as e:
+        print(f"Erro ao conectar ao banco de dados: {e}")
+    return None
 
-def criar_tabelas(cursor):
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS pais (
-        id VARCHAR(3) PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL
-    );
-    """)
+def criar_atletas_em_lote(conexao, dados_atletas):
+    cursor = conexao.cursor()
+    atleta_sql = """
+        INSERT INTO atleta (id_atleta, nome, time, pais_id, season, esport, medalha, ano, cidade) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    atletas = []
+
+    for _, linha in dados_atletas.iterrows():
+        pais_id = linha['NOC']
+        try:
+            atleta = (
+                int(linha['ID']),
+                linha['Name'],
+                linha['Team'],  # A nova coluna 'time'
+                pais_id,
+                linha['Season'],
+                linha['Sport'],
+                linha['Medal'] if pd.notna(linha['Medal']) else 'None',
+                int(linha['Year']) if pd.notna(linha['Year']) else None,
+                linha['City']  # A nova coluna 'cidade'
+            )
+            atletas.append(atleta)
+        except ValueError as ve:
+            print(f"Erro ao processar dados do atleta {linha['Name']}: {ve}")
+
+    try:
+        cursor.executemany(atleta_sql, atletas)
+        conexao.commit()
+        print("Dados dos atletas inseridos com sucesso.")
+    except Error as e:
+        print(f"Erro ao inserir os atletas: {e}")
+    finally:
+        cursor.close()
+
+if __name__ == "__main__":
+    # Carregar dados
+    rota1 = 'archive/athlete_events.csv'
     
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS atleta (
-        id INT PRIMARY KEY,
-        nome VARCHAR(100) NOT NULL,
-        pais_id VARCHAR(3),
-        season ENUM('Summer', 'Winter') NOT NULL,
-        esport VARCHAR(100) NOT NULL,
-        medalha ENUM('Gold', 'Silver', 'Bronze', 'None') DEFAULT 'None',
-        ano INT NOT NULL,
-        FOREIGN KEY (pais_id) REFERENCES pais(id)
-    );
-    """)
+    dados_atletas = pd.read_csv(rota1)
 
-def inserir_atletas(cursor, atletas):
-    for atleta in atletas:
-        cursor.execute("""
-        INSERT INTO atleta (id, nome, pais_id, season, esport, medalha, ano) VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE nome = VALUES(nome), pais_id = VALUES(pais_id), season = VALUES(season), esport = VALUES(esport), medalha = VALUES(medalha), ano = VALUES(ano);
-        """, (atleta.id, atleta.nome, atleta.pais.id, atleta.season, atleta.esport, atleta.medalha, atleta.ano))    
-
-def inserir_paises(cursor, pais_dict):
-    for pais in pais_dict.values():
-        cursor.execute("""
-        INSERT INTO pais (id, nome) VALUES (%s, %s)
-        ON DUPLICATE KEY UPDATE nome = VALUES(nome);
-        """, (pais.id, pais.nome))
-
+    # Conectar ao banco de dados
+    conexao = conectar_bd()
+    if conexao:
+        # Inserir dados dos atletas
+        criar_atletas_em_lote(conexao, dados_atletas)
+        # Fechar a conexão
+        conexao.close()
