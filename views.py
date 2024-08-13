@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 
@@ -24,14 +24,20 @@ class Atleta(db.Model):
     ano = db.Column(db.Integer, nullable=False)
     cidade = db.Column(db.String(150), nullable=False)
 
-def contar_medalhas_por_time():
-    resultado = db.session.query(
+def contar_medalhas_por_time(ano=None):
+    query = db.session.query(
         Atleta.time,
         Atleta.medalha,
         func.count().label('total_medalhas')
     ).filter(
         Atleta.medalha != 'None'  # Ignorar entradas sem medalha
-    ).group_by(
+    )
+    
+    if ano:
+        if ano != "":  # Se o ano não estiver vazio
+            query = query.filter(Atleta.ano == ano)
+    
+    resultado = query.group_by(
         Atleta.time,
         Atleta.medalha
     ).all()
@@ -46,10 +52,22 @@ def contar_medalhas_por_time():
 
     return medalhas_por_time
 
+def obter_anos_validos():
+    anos = db.session.query(Atleta.ano).distinct().order_by(Atleta.ano).all()
+    return [ano[0] for ano in anos]
+
 @app.route('/', methods=['GET'])
 def index():
-    medalhas_por_time = contar_medalhas_por_time()
-    return render_template('index.html', medalhas=medalhas_por_time)
+    ano_selecionado = request.args.get('ano', type=str, default="")
+    
+    # Obter a lista de anos válidos
+    anos_validos = obter_anos_validos()
+
+    # Contar medalhas filtradas pelo ano selecionado
+    medalhas_por_time = contar_medalhas_por_time(ano_selecionado)
+    
+    return render_template('index.html', medalhas=medalhas_por_time, anos_validos=anos_validos, ano_selecionado=ano_selecionado)
+
 
 if __name__ == '__main__':
     app.run()
