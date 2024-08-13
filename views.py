@@ -56,6 +56,9 @@ def obter_anos_validos():
     anos = db.session.query(Atleta.ano).distinct().order_by(Atleta.ano).all()
     return [ano[0] for ano in anos]
 
+def esporte_exibir():
+
+
 @app.route('/', methods=['GET'])
 def index():
     ano_selecionado = request.args.get('ano', type=str, default="")

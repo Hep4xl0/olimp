@@ -19,7 +19,19 @@
         </select>
         <button type="submit">Filtrar</button>
     </form>
-
+    <h2>Esportes por Ano</h2>
+    <ul>
+        {% for ano, esportes in esportes_por_ano.items() %}
+            <li>
+                <strong>{{ ano }}:</strong>
+                <ul>
+                    {% for esport in esportes %}
+                        <li>{{ esport }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
     <!-- Tabela com medalhas -->
     <table border="1">
         <thead>
