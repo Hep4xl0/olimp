@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
@@ -108,3 +109,20 @@ def index():
     return render_template('index.html', medalhas=medalhas_por_pais, anos_validos=anos_validos, ano_selecionado=ano_selecionado, todos_os_esportes=todos_os_esportes, atletas_por_pais=atletas_por_pais, pais_selecionado=pais_selecionado)
 if __name__ == '__main__':
     app.run()
+=======
+from models import *
+from main import *
+def filtrar_atleta_estacao(atletas, estacao):
+    return [atleta for atleta in atletas if atleta.season == estacao]
+
+def filtrar_pais_estacao(pais_dict, estacao):
+    paises_filtro = []
+    for pais in pais_dict.values():
+        atletas_filtro = filtrar_atleta_estacao(pais.atleta, estacao)
+        if atletas_filtro:
+            paises_filtrado = Pais(id=pais.id, nome=pais.nome)
+            for atleta in atletas_filtro:
+                paises_filtrado.adicionar_atleta(atleta)
+            paises_filtro[pais.id] = paises_filtrado    
+    return paises_filtro
+
