@@ -50,43 +50,20 @@
         </tbody>
     </table>
 
-    <!-- Esportes e Atletas por Ano Selecionado -->
-    <h2>Esportes e Atletas para o Ano Selecionado</h2>
-    {% if ano_selecionado %}
-        <ul>
-            {% for esport in esportes_por_ano[ano_selecionado] %}
-                <li>{{ esport }}
-                    {% if esport in atletas_por_pais %}
-                        <ul>
-                            {% for atleta, medalha, ano in atletas_por_pais[esport] %}
-                                <li>{{ atleta }} - Medalha: {{ medalha }} ({{ ano }})</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <ul>
-            {% for ano, esportes in esportes_por_ano.items() %}
-                <li>
-                    <strong>{{ ano }}:</strong>
+    <!-- Esportes e Atletas -->
+    <h2>Esportes e Atletas</h2>
+    <ul>
+        {% for esport in todos_os_esportes %}
+            <li>{{ esport }}
+                {% if esport in atletas_por_pais %}
                     <ul>
-                        {% for esport in esportes %}
-                            <li>{{ esport }}
-                                {% if esport in atletas_por_pais %}
-                                    <ul>
-                                        {% for atleta, medalha, ano in atletas_por_pais[esport] %}
-                                            <li>{{ atleta }} - Medalha: {{ medalha }} ({{ ano }})</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </li>
+                        {% for atleta, medalha, ano in atletas_por_pais[esport] %}
+                            <li>{{ atleta }} - Medalha: {{ medalha }} ({{ ano }})</li>
                         {% endfor %}
                     </ul>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

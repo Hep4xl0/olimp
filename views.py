@@ -56,49 +56,37 @@ def obter_anos_validos():
     anos = db.session.query(Atleta.ano).distinct().order_by(Atleta.ano).all()
     return [ano[0] for ano in anos]
 
-def obter_esportes_por_ano(ano=None):
-    query = db.session.query(
-        Atleta.ano,
-        Atleta.esport
-    ).distinct().order_by(Atleta.ano, Atleta.esport)
 
-    if ano:
-        if ano != "":  # Se o ano não estiver vazio
-            query = query.filter(Atleta.ano == ano)
 
-    esportes_por_ano = query.all()
-
-    esportes_dict = {}
-    for ano, esport in esportes_por_ano:
-        if ano not in esportes_dict:
-            esportes_dict[ano] = []
-        esportes_dict[ano].append(esport)
-    
-    return esportes_dict
-
-def obter_atletas_por_pais(pais_id, ano=None):
+def obter_atletas_com_medalhas_por_pais(pais_id, ano=None):
     query = db.session.query(
         Atleta.nome,
         Atleta.esport,
         Atleta.medalha,
         Atleta.ano
     ).filter(
-        Atleta.pais_id == pais_id
+        Atleta.pais_id == pais_id,
+        Atleta.medalha != 'None'  # Filtrar apenas atletas com medalhas
     )
     
     if ano:
         if ano != "":  # Se o ano não estiver vazio
             query = query.filter(Atleta.ano == ano)
 
-    atletas_por_pais = query.order_by(Atleta.esport, Atleta.nome).all()
+    atletas_com_medalhas = query.order_by(Atleta.esport, Atleta.nome).all()
 
     atletas_dict = {}
-    for nome, esport, medalha, ano in atletas_por_pais:
+    for nome, esport, medalha, ano in atletas_com_medalhas:
         if esport not in atletas_dict:
             atletas_dict[esport] = []
         atletas_dict[esport].append((nome, medalha, ano))
     
     return atletas_dict
+
+
+def obter_todos_os_esportes():
+    esportes = db.session.query(Atleta.esport).distinct().order_by(Atleta.esport).all()
+    return [esport[0] for esport in esportes]
 
 @app.route('/', methods=['GET'])
 def index():
@@ -111,13 +99,12 @@ def index():
     # Contar medalhas filtradas pelo ano selecionado
     medalhas_por_pais = contar_medalhas_por_pais(ano_selecionado)
 
-    # Obter esportes por ano, filtrando pelo ano selecionado
-    esportes_por_ano = obter_esportes_por_ano(ano_selecionado)
+    # Obter todos os esportes
+    todos_os_esportes = obter_todos_os_esportes()
 
-    # Obter atletas pelo país e ano selecionados, se houver
-    atletas_por_pais = obter_atletas_por_pais(pais_selecionado, ano_selecionado) if pais_selecionado else {}
+    # Obter atletas com medalhas pelo país e ano selecionados, se houver
+    atletas_por_pais = obter_atletas_com_medalhas_por_pais(pais_selecionado, ano_selecionado) if pais_selecionado else {}
 
-    return render_template('index.html', medalhas=medalhas_por_pais, anos_validos=anos_validos, ano_selecionado=ano_selecionado, esportes_por_ano=esportes_por_ano, atletas_por_pais=atletas_por_pais, pais_selecionado=pais_selecionado)
-
+    return render_template('index.html', medalhas=medalhas_por_pais, anos_validos=anos_validos, ano_selecionado=ano_selecionado, todos_os_esportes=todos_os_esportes, atletas_por_pais=atletas_por_pais, pais_selecionado=pais_selecionado)
 if __name__ == '__main__':
     app.run()
