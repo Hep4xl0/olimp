@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medalhas por País</title>
+</head>
+<body>
+    <h1>Medalhas por País</h1>
+    
+    <!-- Formulário para selecionar o ano -->
+    <form method="GET" action="/">
+        <label for="ano">Escolha o Ano:</label>
+        <select id="ano" name="ano">
+            <option value="">Todos os Anos</option>
+            {% for ano in anos_validos %}
+                <option value="{{ ano }}" {% if ano == ano_selecionado %}selected{% endif %}>{{ ano }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <!-- Tabela com medalhas -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>País</th>
+                <th>Ouro</th>
+                <th>Prata</th>
+                <th>Bronze</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if medalhas %}
+                {% for pais_id, medalhas in medalhas.items() %}
+                    <tr>
+                        <td><a href="/?pais={{ pais_id }}&ano={{ ano_selecionado }}">{{ pais_id }}</a></td>
+                        <td>{{ medalhas['Gold'] }}</td>
+                        <td>{{ medalhas['Silver'] }}</td>
+                        <td>{{ medalhas['Bronze'] }}</td>
+                        <td>{{ medalhas['Total'] }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5">Nenhum dado disponível</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Esportes e Atletas -->
+    <h2>Esportes e Atletas</h2>
+    <ul>
+        {% for esport in todos_os_esportes %}
+            <li>{{ esport }}
+                {% if esport in atletas_por_pais %}
+                    <ul>
+                        {% for atleta, medalha, ano in atletas_por_pais[esport] %}
+                            <li>{{ atleta }} - Medalha: {{ medalha }} ({{ ano }})</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
