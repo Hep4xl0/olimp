@@ -1,7 +1,7 @@
 from src.models.atletas_model import Atleta
 from src import db
 from sqlalchemy import func
-from flask import jsonify, request, Blueprint
+from flask import render_template, request, Blueprint
 
 get_atletas = Blueprint("get_atletas",__name__)
 
@@ -70,8 +70,9 @@ def obter_todos_os_esportes():
     return [esport[0] for esport in esportes]
 
 
-@get_atletas.route('/api/medalhas', methods=['GET'])
-def obter_medalhas():
+
+@get_atletas.route('/', methods=['GET'])
+def index():
     ano_selecionado = request.args.get('ano', type=str, default="")
     pais_selecionado = request.args.get('pais', type=str, default="")
 
@@ -87,9 +88,5 @@ def obter_medalhas():
     # Obter atletas com medalhas pelo país e ano selecionados, se houver
     atletas_por_pais = obter_atletas_com_medalhas_por_pais(pais_selecionado, ano_selecionado) if pais_selecionado else {}
 
-    return jsonify({
-        'medalhas': medalhas_por_pais,
-        'anos_validos': anos_validos,
-        'todos_os_esportes': todos_os_esportes,
-        'atletas_por_pais': atletas_por_pais
-    })
+    return render_template('index.html', medalhas=medalhas_por_pais, anos_validos=anos_validos, ano_selecionado=ano_selecionado, todos_os_esportes=todos_os_esportes, atletas_por_pais=atletas_por_pais, pais_selecionado=pais_selecionado)
+
