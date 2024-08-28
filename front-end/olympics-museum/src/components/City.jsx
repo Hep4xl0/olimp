@@ -15,7 +15,7 @@ const YearBox = styled.div`
     border: solid 2px white;
     background-color: #181818;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; /* Ajuste o alinhamento horizontal */
     align-items: center;
     overflow: auto;
     white-space: nowrap;
@@ -36,9 +36,12 @@ const Year = styled.button`
     padding: 20px;
     transition: 200ms ease;
     opacity: 0.5;
+    scroll-snap-align: start; /* Alinha o botão ao início do contêiner */
     &:hover {
         opacity: 1;
     }
+    font-weight: ${props => (props.selected ? 'bold' : 'normal')};
+    background-color: ${props => (props.selected ? '#333' : 'transparent')};
 `;
 const Score = styled.div`
     user-select: none;
@@ -69,7 +72,10 @@ const TopDescription = styled.div`
     justify-content: space-between;
     padding: 5px 0px;
 `;
-const IconMedals = styled.div``;
+const IconMedals = styled.div`
+    display: flex;
+    align-items: center;
+`;
 const Description = styled.p`
     color: grey;
     margin: 0;
@@ -79,7 +85,7 @@ const Description = styled.p`
 const Img = styled.img`
     width: 20px;
     height: 20px;
-    padding-right: 10px;
+    margin-right: 10px;
 `;
 const Classification = styled.div`
     display: flex;
@@ -104,26 +110,15 @@ const Country = styled.h3`
 `;
 const Results = styled.div`
     display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 10px;
     font-size: 1.12rem;
 `;
-const GoldMedal = styled.p`
-    margin: 0;
-    color: white;
-    font-family: montserrat;
-`;
-const SilverMedal = styled.p`
-    margin: 0;
-    color: white;
-    font-family: montserrat;
-`;
-const BronzeMedal = styled.p`
-    margin: 0;
-    color: white;
-    font-family: montserrat;
-`;
-const TotalMedal = styled.p`
-    margin: 0;
+const MedalCount = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 5px;
     color: white;
     font-family: montserrat;
 `;
@@ -132,12 +127,16 @@ function City() {
     const trackRef = useRef(null);
     const [dates, setDates] = useState([]);
     const [medals, setMedals] = useState({});
-    const [selectedYear, setSelectedYear] = useState("");
+    const [selectedYear, setSelectedYear] = useState("Todos");
 
     const handleScroll = (event) => {
         if (trackRef.current) {
             event.preventDefault();
-            trackRef.current.scrollLeft += event.deltaY * 10;
+            const scrollAmount = event.deltaY * 0.5; // Ajuste a quantidade de rolagem
+            trackRef.current.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth' // Suaviza a rolagem
+            });
         }
     };
 
@@ -151,8 +150,9 @@ function City() {
         // Carregar os anos válidos da API
         axios.get('http://localhost:5000/anos')
             .then(response => {
-                setDates(response.data.anos_validos);
-                setSelectedYear(response.data.anos_validos[0]); // Seleciona o primeiro ano por padrão
+                const years = response.data.anos_validos;
+                console.log('Anos recebidos da API:', years); // Debug: Verifique os anos recebidos
+                setDates(["Todos", ...years]); // Adiciona a opção "Todos"
             })
             .catch(error => console.error('Erro ao carregar anos:', error));
 
@@ -164,16 +164,21 @@ function City() {
     }, []);
 
     useEffect(() => {
-        if (selectedYear) {
-            // Carregar as medalhas para o ano selecionado
-            axios.get(`http://localhost:5000/medalhas?ano=${selectedYear}`)
-                .then(response => {
-                    // Adiciona um log para debug
-                    console.log(response.data.medalhas);
-                    setMedals(response.data.medalhas);
-                })
-                .catch(error => console.error('Erro ao carregar medalhas:', error));
-        }
+        const fetchMedals = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/medalhas', {
+                    params: {
+                        ano: selectedYear === "Todos" ? null : selectedYear
+                    }
+                });
+                console.log('Medalhas recebidas da API:', response.data.medalhas); // Debug: Verifique os dados recebidos
+                setMedals(response.data.medalhas);
+            } catch (error) {
+                console.error('Erro ao carregar medalhas:', error);
+            }
+        };
+
+        fetchMedals();
     }, [selectedYear]);
 
     return (
@@ -182,23 +187,23 @@ function City() {
                 {dates.map((date) => (
                     <Year 
                         key={date} 
-                        className="year" 
                         onClick={() => setSelectedYear(date)}
+                        selected={selectedYear === date} // Adiciona a propriedade `selected`
                     >
                         {date}
                     </Year>
                 ))}
             </YearBox>
             <Score>
-                <CityName>{selectedYear}</CityName>
+                <CityName>{selectedYear === "Todos" ? "All Years" : selectedYear}</CityName>
                 <Positions>
                     <TopDescription>
                         <Description>Team</Description>
                         <IconMedals>
-                           <Img src={gold} alt="Gold Medal"/>
-                           <Img src={silver} alt="Silver Medal"/>
-                           <Img src={bronze} alt="Bronze Medal"/>
-                           <Img src={all} alt="All Medals"/>
+                            <Img src={gold} alt="Gold Medal"/>
+                            <Img src={silver} alt="Silver Medal"/>
+                            <Img src={bronze} alt="Bronze Medal"/>
+                            <Img src={all} alt="All Medals"/>
                         </IconMedals>
                     </TopDescription>
                     {/* Renderiza os dados de medalhas */}
@@ -208,10 +213,22 @@ function City() {
                                 <Position>{index + 1}</Position>
                                 <Country>{country}</Country>
                                 <Results>
-                                    <GoldMedal>{medals[country].Gold}</GoldMedal>
-                                    <SilverMedal>{medals[country].Silver}</SilverMedal>
-                                    <BronzeMedal>{medals[country].Bronze}</BronzeMedal>
-                                    <TotalMedal>{medals[country].Total}</TotalMedal>
+                                    <MedalCount>
+                                        <Img src={gold} alt="Gold Medal"/>
+                                        <p>{medals[country].Gold}</p>
+                                    </MedalCount>
+                                    <MedalCount>
+                                        <Img src={silver} alt="Silver Medal"/>
+                                        <p>{medals[country].Silver}</p>
+                                    </MedalCount>
+                                    <MedalCount>
+                                        <Img src={bronze} alt="Bronze Medal"/>
+                                        <p>{medals[country].Bronze}</p>
+                                    </MedalCount>
+                                    <MedalCount>
+                                        <Img src={all} alt="All Medals"/>
+                                        <p>{medals[country].Total}</p>
+                                    </MedalCount>
                                 </Results>
                             </Classification>
                         ))
