@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-
-import styled from 'styled-components'
-import { useRef, useEffect } from 'react';
-import gold from '../images/gold.svg'
-import silver from '../images/silver.svg'
-import bronze from '../images/bronze.svg'
-import all from '../images/all.svg'
+import styled from 'styled-components';
+import gold from '../images/gold.svg';
+import silver from '../images/silver.svg';
+import bronze from '../images/bronze.svg';
+import all from '../images/all.svg';
 
 const MainBox = styled.div`
     width: 500px;
     height: 600px;
-`
+`;
 const YearBox = styled.div`
     cursor: grab;
     border: solid 2px white;
@@ -19,12 +17,11 @@ const YearBox = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-
     overflow: auto;
     white-space: nowrap;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
-`
+`;
 const Year = styled.button`
     cursor: pointer;
     user-select: none;
@@ -42,13 +39,13 @@ const Year = styled.button`
     &:hover {
         opacity: 1;
     }
-`
+`;
 const Score = styled.div`
     user-select: none;
     height: 500px;
     background-color: #181818;
     overflow: auto;
-`
+`;
 const CityName = styled.h2`
     margin: 0;
     padding: 20px;
@@ -58,33 +55,32 @@ const CityName = styled.h2`
     font-style: italic;
     font-weight: 500;
     text-align: center;
-`
+`;
 const Positions = styled.div`
     background-color: #202020;
     margin: 0px 10px;
     padding: 15px;
     display: flex;
     flex-direction: column;
-`
+`;
 const TopDescription = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     padding: 5px 0px;
-`
-const IconMedals = styled.div`
-`
+`;
+const IconMedals = styled.div``;
 const Description = styled.p`
     color: grey;
     margin: 0;
     font-family: montserrat;
     padding-bottom: 10px;
-`
+`;
 const Img = styled.img`
     width: 20px;
     height: 20px;
     padding-right: 10px;
-`
+`;
 const Classification = styled.div`
     display: flex;
     flex-direction: row;
@@ -92,12 +88,12 @@ const Classification = styled.div`
     align-items: center;
     border-top: solid 1px grey; 
     padding: 5px 10px;
-`
+`;
 const Position = styled.p`
     margin: 0;
     color: white;
     font-family: arial;
-`
+`;
 const Country = styled.h3`
     color: white;
     margin: 0;
@@ -105,32 +101,32 @@ const Country = styled.h3`
     font-size: 1rem;
     font-weight: 500;
     padding: 10px 0px;
-`
+`;
 const Results = styled.div`
     display: flex;
     gap: 10px;
     font-size: 1.12rem;
-`
+`;
 const GoldMedal = styled.p`
     margin: 0;
     color: white;
     font-family: montserrat;
-`
+`;
 const SilverMedal = styled.p`
     margin: 0;
     color: white;
     font-family: montserrat;
-`
+`;
 const BronzeMedal = styled.p`
     margin: 0;
     color: white;
     font-family: montserrat;
-`
+`;
 const TotalMedal = styled.p`
     margin: 0;
     color: white;
     font-family: montserrat;
-`
+`;
 
 function City() {
     const trackRef = useRef(null);
@@ -171,7 +167,11 @@ function City() {
         if (selectedYear) {
             // Carregar as medalhas para o ano selecionado
             axios.get(`http://localhost:5000/medalhas?ano=${selectedYear}`)
-                .then(response => setMedals(response.data.medalhas))
+                .then(response => {
+                    // Adiciona um log para debug
+                    console.log(response.data.medalhas);
+                    setMedals(response.data.medalhas);
+                })
                 .catch(error => console.error('Erro ao carregar medalhas:', error));
         }
     }, [selectedYear]);
@@ -190,30 +190,34 @@ function City() {
                 ))}
             </YearBox>
             <Score>
-                <CityName>PARIS</CityName>
+                <CityName>{selectedYear}</CityName>
                 <Positions>
                     <TopDescription>
                         <Description>Team</Description>
                         <IconMedals>
-                           <Img scr={gold}></Img>
-                           <Img scr={silver}></Img>
-                           <Img scr={bronze}></Img>
-                           <Img scr={all}></Img>
+                           <Img src={gold} alt="Gold Medal"/>
+                           <Img src={silver} alt="Silver Medal"/>
+                           <Img src={bronze} alt="Bronze Medal"/>
+                           <Img src={all} alt="All Medals"/>
                         </IconMedals>
                     </TopDescription>
                     {/* Renderiza os dados de medalhas */}
-                    {Object.keys(medals).map((country, index) => (
-                        <Classification key={index}>
-                            <Position>{index + 1}</Position>
-                            <Country>{country}</Country>
-                            <Results>
-                                <GoldMedal>{medals[country].gold}</GoldMedal>
-                                <SilverMedal>{medals[country].silver}</SilverMedal>
-                                <BronzeMedal>{medals[country].bronze}</BronzeMedal>
-                                <TotalMedal>{medals[country].total}</TotalMedal>
-                            </Results>
-                        </Classification>
-                    ))}
+                    {Object.keys(medals).length > 0 ? (
+                        Object.keys(medals).map((country, index) => (
+                            <Classification key={index}>
+                                <Position>{index + 1}</Position>
+                                <Country>{country}</Country>
+                                <Results>
+                                    <GoldMedal>{medals[country].Gold}</GoldMedal>
+                                    <SilverMedal>{medals[country].Silver}</SilverMedal>
+                                    <BronzeMedal>{medals[country].Bronze}</BronzeMedal>
+                                    <TotalMedal>{medals[country].Total}</TotalMedal>
+                                </Results>
+                            </Classification>
+                        ))
+                    ) : (
+                        <p>No data available</p>
+                    )}
                 </Positions>
             </Score>
         </MainBox>

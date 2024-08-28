@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import City from './City';
 import Season from './Season';
+import styled from 'styled-components'
+import OlympicsImage from '../images/Olympics.png'
+
 
 const Header = styled.header`
     background: linear-gradient(90deg, #0040E5, #2D0051);
@@ -90,7 +93,7 @@ function Page() {
         <>
             <Header>
                 <Title>OLYMPICS MUSEUM</Title>
-                <Logo src={OlympucsImage} alt='Olympics Image'/>
+                <Logo src={OlympicsImage} alt='Olympics Image'/>
             </Header>
 
             <Windows>
