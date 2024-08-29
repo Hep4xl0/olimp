@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createGlobalStyle } from 'styled-components'
 import Page from './components/Page.jsx'
+import { CountryProvider } from './context/CountryContext';
 
 const GlobalStyle = createGlobalStyle`
   body {

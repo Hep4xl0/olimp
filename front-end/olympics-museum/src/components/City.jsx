@@ -15,7 +15,7 @@ const YearBox = styled.div`
     border: solid 2px white;
     background-color: #181818;
     display: flex;
-    justify-content: flex-start; /* Ajuste o alinhamento horizontal */
+    justify-content: flex-start;
     align-items: center;
     overflow: auto;
     white-space: nowrap;
@@ -36,7 +36,7 @@ const Year = styled.button`
     padding: 20px;
     transition: 200ms ease;
     opacity: 0.5;
-    scroll-snap-align: start; /* Alinha o botão ao início do contêiner */
+    scroll-snap-align: start;
     &:hover {
         opacity: 1;
     }
@@ -94,6 +94,8 @@ const Classification = styled.div`
     align-items: center;
     border-top: solid 1px grey; 
     padding: 5px 10px;
+    cursor: pointer; /* Adiciona cursor de clique */
+    background-color: ${props => (props.selected ? '#333' : 'transparent')}; /* Destaca país selecionado */
 `;
 const Position = styled.p`
     margin: 0;
@@ -128,6 +130,7 @@ function City() {
     const [dates, setDates] = useState([]);
     const [medals, setMedals] = useState({});
     const [selectedYear, setSelectedYear] = useState("Todos");
+    const [selectedCountry, setSelectedCountry] = useState(null); // Estado para o país selecionado
 
     const handleScroll = (event) => {
         if (trackRef.current) {
@@ -209,7 +212,11 @@ function City() {
                     {/* Renderiza os dados de medalhas */}
                     {Object.keys(medals).length > 0 ? (
                         Object.keys(medals).map((country, index) => (
-                            <Classification key={index}>
+                            <Classification
+                                key={index}
+                                onClick={() => setSelectedCountry(country)} // Define o país selecionado ao clicar
+                                selected={selectedCountry === country} // Adiciona a propriedade `selected`
+                            >
                                 <Position>{index + 1}</Position>
                                 <Country>{country}</Country>
                                 <Results>

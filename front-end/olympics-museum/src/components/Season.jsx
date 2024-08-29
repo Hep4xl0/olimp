@@ -8,6 +8,8 @@ import silver from '../images/silver.svg';
 import bronze from '../images/bronze.svg';
 import all from '../images/all.svg';
 
+// Estilos dos componentes (aqui mantemos a mesma estrutura para não alterar muito)
+
 const MainBox = styled.div`
     width: 500px;
     height: 600px;
@@ -203,9 +205,9 @@ const SportName = styled.h4`
 const Drawer = styled.div`
     padding-left: 20px;
     transition: 200ms ease;
-    margin-top: ${({ isActive }) => (isActive ? '-100px' : '0px')};
-    z-index: ${({ isActive }) => (isActive ? '-1' : '0')};
-    opacity: ${({ isActive }) => (isActive ? '0' : '1')};
+    margin-top: ${({ isActive }) => (isActive ? '0px' : '-100px')};
+    z-index: ${({ isActive }) => (isActive ? '0' : '-1')};
+    opacity: ${({ isActive }) => (isActive ? '1' : '0')};
 `;
 const TopDescriptionAthlete = styled.div`
     display: flex;
@@ -224,16 +226,16 @@ const ClassificationAthlete = styled.div`
 `;
 
 function Season() {
+    const [sports, setSports] = useState([]);
+    const [athletes, setAthletes] = useState({});
+    const [medals, setMedals] = useState({});
     const [isActive, setIsActive] = useState(null); // Track active drawer by sport
+    const [selectedSport, setSelectedSport] = useState(null);
     const [flameActive, setFlameActive] = useState(true);
     const [snowflakeActive, setSnowflakeActive] = useState(false);
-    const [season, setSeason] = useState("SUMMER");
-    const [medals, setMedals] = useState({});
-    const [athletes, setAthletes] = useState([]);
-    const [selectedCountry, setSelectedCountry] = useState("United States");
-    const [selectedYear, setSelectedYear] = useState("2021");
-    const [sports, setSports] = useState([]);
-    const [selectedSport, setSelectedSport] = useState("Swimming"); // Default sport
+    const [selectedCountry, setSelectedCountry] = useState(null);
+    const [selectedYear, setSelectedYear] = useState(null);
+    const [season, setSeason] = useState('SUMMER');
 
     useEffect(() => {
         // Carrega a lista de esportes
@@ -243,20 +245,33 @@ function Season() {
     }, []);
 
     useEffect(() => {
-        if (selectedYear && selectedSport) {
-            axios.get(`http://localhost:5000/medalhas?ano=${selectedYear}&modalidade=${selectedSport}`)
-                .then(response => setMedals(response.data.medalhas))
-                .catch(error => console.error('Erro ao carregar medalhas:', error));
+        const fetchData = async () => {
+            try {
+                if (selectedSport) {
+                    // Carrega medalhas
+                    const medalsResponse = await axios.get(`http://localhost:5000/medalhas?ano=${selectedYear || ''}&modalidade=${selectedSport}`);
+                    setMedals(medalsResponse.data.medalhas);
 
-            axios.get(`http://localhost:5000/atletas?ano=${selectedYear}&pais=${selectedCountry}&modalidade=${selectedSport}`)
-                .then(response => setAthletes(response.data.atletas_por_pais))
-                .catch(error => console.error('Erro ao carregar atletas:', error));
-        }
+                    // Carrega atletas
+                    const athletesResponse = await axios.get(`http://localhost:5000/atletas?ano=${selectedYear || ''}&pais=${selectedCountry || ''}&modalidade=${selectedSport}`);
+                    setAthletes(athletesResponse.data.atletas);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        };
+
+        fetchData();
     }, [selectedYear, season, selectedCountry, selectedSport]);
 
     const toggleActive = (sport) => {
-        setIsActive(isActive === sport ? null : sport);
-        setSelectedSport(sport);
+        if (isActive === sport) {
+            setIsActive(null);
+            setSelectedSport(null);
+        } else {
+            setIsActive(sport);
+            setSelectedSport(sport);
+        }
     };
 
     const handleFlameClick = () => {
@@ -283,7 +298,7 @@ function Season() {
                 </ButtonSnowflake>
             </MomentumBox>
             <Score>
-                <CountryName>{selectedCountry}</CountryName>
+                <CountryName>{selectedCountry || 'All Countries'}</CountryName>
                 <Positions>
                     <TopDescription>
                         <Description>Team</Description>
@@ -322,24 +337,25 @@ function Season() {
 
                     {/* Renderiza o conteúdo do Drawer com base no esporte ativo */}
                     {isActive && (
-                        <Drawer>
-                            <Description>Athlete</Description>
+                        <Drawer isActive={isActive === selectedSport}>
+                            <Description>Athletes</Description>
                             <IconMedals style={{ display: 'flex' }}></IconMedals>
 
                             {/* Renderiza os dados dos atletas */}
-                            {athletes.map((athlete, index) => (
-                                <ClassificationAthlete key={index}>
-                                    <PositionAthlete>{index + 1}</PositionAthlete>
-                                    <CountryAthlete>{athlete.country}</CountryAthlete>
-                                    <Athlete>{athlete.name}</Athlete>
-                                    <Results>
-                                        <GoldMedalAthlete>{athlete.gold} Gold</GoldMedalAthlete>
-                                        <SilverMedalAthlete>{athlete.silver} Silver</SilverMedalAthlete>
-                                        <BronzeMedalAthlete>{athlete.bronze} Bronze</BronzeMedalAthlete>
-                                        <TotalMedalAthlete>{athlete.total} Total</TotalMedalAthlete>
-                                    </Results>
-                                </ClassificationAthlete>
-                            ))}
+                            {athletes && Object.keys(athletes).map(country =>
+                                athletes[country].map((athlete, index) => (
+                                    <ClassificationAthlete key={index}>
+                                        <PositionAthlete>{index + 1}</PositionAthlete>
+                                        <CountryAthlete>{country}</CountryAthlete>
+                                        <Athlete>{athlete.nome}</Athlete>
+                                        <Results>
+                                            <GoldMedalAthlete>{athlete.medalha === 'Gold' ? 1 : 0} Gold</GoldMedalAthlete>
+                                            <SilverMedalAthlete>{athlete.medalha === 'Silver' ? 1 : 0} Silver</SilverMedalAthlete>
+                                            <BronzeMedalAthlete>{athlete.medalha === 'Bronze' ? 1 : 0} Bronze</BronzeMedalAthlete>
+                                        </Results>
+                                    </ClassificationAthlete>
+                                ))
+                            )}
                         </Drawer>
                     )}
                 </Positions>
@@ -349,3 +365,4 @@ function Season() {
 }
 
 export default Season;
+
