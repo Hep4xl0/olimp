@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react'; // Importa useContext aqui
 import styled from 'styled-components';
 import axios from 'axios';
 import flame from '../images/flame.png';
@@ -25,6 +25,24 @@ const ButtonFlame = styled.button`
     opacity: ${({ flameActive, snowflakeActive }) => (flameActive && !snowflakeActive ? '1' : '0.8')};
   }
 `;
+
+const AthleteBox = styled.div`
+  padding: 10px;
+  background-color: #303030;
+  border-radius: 5px;
+`;
+
+const AthleteItem = styled.div`
+  padding: 5px;
+  border-bottom: 1px solid #444;
+`;
+
+const AthleteName = styled.span`
+  color: white;
+  font-family: montserrat;
+`;
+
+
 const ButtonSnowflake = styled.button`
   border: none;
   background: none;
@@ -225,19 +243,21 @@ const ClassificationAthlete = styled.div`
     padding: 5px 10px;
 `;
 
+
+
+
 function Season() {
     const [sports, setSports] = useState([]);
-    const [athletes, setAthletes] = useState({});
+    const [athletes, setAthletes] = useState([]); // Inicialize como array vazio
     const [medals, setMedals] = useState({});
-    const [isActive, setIsActive] = useState(null); // Track active drawer by sport
+    const [isActive, setIsActive] = useState(null);
     const [selectedSport, setSelectedSport] = useState(null);
     const [flameActive, setFlameActive] = useState(true);
     const [snowflakeActive, setSnowflakeActive] = useState(false);
-    const { selectedCountry, selectedYear } = React.useContext(MeuContexto); // Consome o contexto
+    const { selectedCountry, selectedYear } = useContext(MeuContexto);
     const [season, setSeason] = useState('SUMMER');
 
     useEffect(() => {
-        // Carrega a lista de esportes
         axios.get('http://localhost:5000/esportes')
             .then(response => setSports(response.data.esportes))
             .catch(error => console.error('Erro ao carregar esportes:', error));
@@ -247,7 +267,6 @@ function Season() {
         const fetchData = async () => {
             try {
                 if (selectedSport) {
-                    // Carrega medalhas
                     const medalsResponse = await axios.get('http://localhost:5000/medalhas', {
                         params: {
                             ano: selectedYear || '', 
@@ -256,7 +275,6 @@ function Season() {
                     });
                     setMedals(medalsResponse.data.medalhas);
 
-                    // Carrega atletas
                     const athletesResponse = await axios.get('http://localhost:5000/atletas', {
                         params: {
                             ano: selectedYear || '', 
@@ -264,10 +282,18 @@ function Season() {
                             modalidade: selectedSport
                         }
                     });
-                    setAthletes(athletesResponse.data.atletas);
+
+                    // Verifique se a resposta é um array antes de definir o estado
+                    if (Array.isArray(athletesResponse.data.atletas)) {
+                        setAthletes(athletesResponse.data.atletas);
+                    } else {
+                        console.warn('A resposta dos atletas não é um array:', athletesResponse.data.atletas);
+                        setAthletes([]); // Defina como array vazio se não for um array
+                    }
                 }
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
+                setAthletes([]); // Defina como array vazio em caso de erro
             }
         };
 
@@ -304,7 +330,7 @@ function Season() {
                     snowflakeActive={snowflakeActive} 
                     onClick={handleFlameClick}
                 >
-                    {/* Adicione o conteúdo do botão se necessário */}
+                    <MomentumImg src={flame} alt="Summer"/>
                 </ButtonFlame>
                 <h2>{season}</h2>
                 <ButtonSnowflake 
@@ -312,7 +338,7 @@ function Season() {
                     snowflakeActive={snowflakeActive} 
                     onClick={handleSnowflakeClick}
                 >
-                    {/* Adicione o conteúdo do botão se necessário */}
+                    <MomentumImg src={snowflake} alt="Winter"/>
                 </ButtonSnowflake>
             </MomentumBox>
             <Score>
@@ -328,7 +354,6 @@ function Season() {
                         </IconMedals>
                     </TopDescription>
 
-                    {/* Renderiza os dados de medalhas */}
                     {medals[selectedCountry] && (
                         <Classification>
                             <Position>1</Position>
@@ -342,7 +367,6 @@ function Season() {
                         </Classification>
                     )}
 
-                    {/* Renderiza botões para cada esporte */}
                     {sports.map(sport => (
                         <DrawerButton
                             key={sport}
@@ -353,28 +377,18 @@ function Season() {
                         </DrawerButton>
                     ))}
 
-                    {/* Renderiza o conteúdo do Drawer com base no esporte ativo */}
                     {isActive && (
-                        <Drawer isActive={isActive === selectedSport}>
-                            <Description>Athletes</Description>
-                            <IconMedals style={{ display: 'flex' }}></IconMedals>
-
-                            {/* Renderiza os dados dos atletas */}
-                            {athletes && Object.keys(athletes).map(country =>
-                                athletes[country].map((athlete, index) => (
-                                    <ClassificationAthlete key={index}>
-                                        <PositionAthlete>{index + 1}</PositionAthlete>
-                                        <CountryAthlete>{country}</CountryAthlete>
-                                        <Athlete>{athlete.nome}</Athlete>
-                                        <Results>
-                                            <GoldMedalAthlete>{athlete.medalha === 'Gold' ? 1 : 0} Gold</GoldMedalAthlete>
-                                            <SilverMedalAthlete>{athlete.medalha === 'Silver' ? 1 : 0} Silver</SilverMedalAthlete>
-                                            <BronzeMedalAthlete>{athlete.medalha === 'Bronze' ? 1 : 0} Bronze</BronzeMedalAthlete>
-                                        </Results>
-                                    </ClassificationAthlete>
+                        <AthleteBox>
+                            {Array.isArray(athletes) && athletes.length > 0 ? (
+                                athletes.map((athlete, index) => (
+                                    <AthleteItem key={index}>
+                                        <AthleteName>{athlete.name}</AthleteName>
+                                    </AthleteItem>
                                 ))
+                            ) : (
+                                <p>No athletes available</p>
                             )}
-                        </Drawer>
+                        </AthleteBox>
                     )}
                 </Positions>
             </Score>

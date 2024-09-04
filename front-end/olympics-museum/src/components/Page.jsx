@@ -4,7 +4,8 @@ import City from './City';
 import Season from './Season';
 import styled from 'styled-components'
 import OlympicsImage from '../images/Olympics.png'
-import { MyContext } from '../context/MeuContexto';
+import { MeuContexto, MeuProvider } from '../context/MeuContexto'; // Importa o contexto e o provider
+
 
 const Header = styled.header`
     background: linear-gradient(90deg, #0040E5, #2D0051);
@@ -74,14 +75,11 @@ const Windows = styled.div`
 
 function Page() {
     const [years, setYears] = useState([]);
-    const [selectedYear, setSelectedYear] = useState("2021");  // Ano padrão
+    const [selectedYear, setSelectedYear] = useState("2021");
     const [season, setSeason] = useState("SUMMER");
-    const [selectedCountry, setSelectedCountry] = useState("United States");
-    const MyContext = 
-    React.createContext(defaultValue)
+    const [selectedCountry, setSelectedCountry] = useState();
 
     useEffect(() => {
-        // Carrega os anos válidos
         axios.get('http://localhost:5000/anos')
             .then(response => setYears(response.data.anos_validos))
             .catch(error => console.error('Erro ao carregar anos válidos:', error));
@@ -99,13 +97,11 @@ function Page() {
             </Header>
 
             <Windows>
-                {/* Passando os anos e o ano selecionado para o componente City */}
                 <City 
                     years={years} 
                     selectedYear={selectedYear} 
                     onYearChange={handleYearChange} 
                 />
-                {/* Passando o ano, estação e país selecionados para o componente Season */}
                 <Season 
                     selectedYear={selectedYear} 
                     season={season} 

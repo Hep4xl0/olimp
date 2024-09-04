@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useRef, Children } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react'; // Importa useContext aqui
 import axios from 'axios';
 import styled from 'styled-components';
 import gold from '../images/gold.svg';
 import silver from '../images/silver.svg';
 import bronze from '../images/bronze.svg';
 import all from '../images/all.svg';
-import { MeuContexto, MeuProvider } from './MeuContexto'; // Importa o contexto e o provider
+import { MeuContexto } from '../context/MeuContexto'; // Importa o contexto
 
 const MainBox = styled.div`
     width: 500px;
     height: 600px;
 `;
+
 const YearBox = styled.div`
     cursor: grab;
     border: solid 2px white;
@@ -23,6 +24,7 @@ const YearBox = styled.div`
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
 `;
+
 const Year = styled.button`
     cursor: pointer;
     user-select: none;
@@ -38,18 +40,22 @@ const Year = styled.button`
     transition: 200ms ease;
     opacity: 0.5;
     scroll-snap-align: start;
+
     &:hover {
         opacity: 1;
     }
+
     font-weight: ${props => (props.selected ? 'bold' : 'normal')};
     background-color: ${props => (props.selected ? '#333' : 'transparent')};
 `;
+
 const Score = styled.div`
     user-select: none;
     height: 500px;
     background-color: #181818;
     overflow: auto;
 `;
+
 const CityName = styled.h2`
     margin: 0;
     padding: 20px;
@@ -60,6 +66,7 @@ const CityName = styled.h2`
     font-weight: 500;
     text-align: center;
 `;
+
 const Positions = styled.div`
     background-color: #202020;
     margin: 0px 10px;
@@ -67,27 +74,32 @@ const Positions = styled.div`
     display: flex;
     flex-direction: column;
 `;
+
 const TopDescription = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     padding: 5px 0px;
 `;
+
 const IconMedals = styled.div`
     display: flex;
     align-items: center;
 `;
+
 const Description = styled.p`
     color: grey;
     margin: 0;
     font-family: montserrat;
     padding-bottom: 10px;
 `;
+
 const Img = styled.img`
     width: 20px;
     height: 20px;
     margin-right: 10px;
 `;
+
 const Classification = styled.div`
     display: flex;
     flex-direction: row;
@@ -95,14 +107,16 @@ const Classification = styled.div`
     align-items: center;
     border-top: solid 1px grey; 
     padding: 5px 10px;
-    cursor: pointer; /* Adiciona cursor de clique */
-    background-color: ${props => (props.selected ? '#333' : 'transparent')}; /* Destaca país selecionado */
+    cursor: pointer;
+    background-color: ${props => (props.selected ? '#333' : 'transparent')};
 `;
+
 const Position = styled.p`
     margin: 0;
     color: white;
     font-family: arial;
 `;
+
 const Country = styled.h3`
     color: white;
     margin: 0;
@@ -111,6 +125,7 @@ const Country = styled.h3`
     font-weight: 500;
     padding: 10px 0px;
 `;
+
 const Results = styled.div`
     display: flex;
     flex-direction: row;
@@ -118,6 +133,7 @@ const Results = styled.div`
     gap: 10px;
     font-size: 1.12rem;
 `;
+
 const MedalCount = styled.div`
     display: flex;
     align-items: center;
@@ -126,11 +142,15 @@ const MedalCount = styled.div`
     font-family: montserrat;
 `;
 
+// City.jsx
+
+
+
 function City() {
     const trackRef = useRef(null);
     const [dates, setDates] = useState([]);
     const [medals, setMedals] = useState({});
-    const { selectedYear, setSelectedYear, selectedCountry, setSelectedCountry } = React.useContext(MeuContexto); // Consome o contexto
+    const { selectedYear, setSelectedYear, selectedCountry, setSelectedCountry } = useContext(MeuContexto);
 
     const handleScroll = (event) => {
         if (trackRef.current) {
