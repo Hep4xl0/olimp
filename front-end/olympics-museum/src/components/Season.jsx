@@ -7,7 +7,7 @@ import gold from '../images/gold.svg';
 import silver from '../images/silver.svg';
 import bronze from '../images/bronze.svg';
 import all from '../images/all.svg';
-
+import { MeuContexto } from '../context/MeuContexto'; 
 // Estilos dos componentes (aqui mantemos a mesma estrutura para não alterar muito)
 
 const MainBox = styled.div`
@@ -233,8 +233,7 @@ function Season() {
     const [selectedSport, setSelectedSport] = useState(null);
     const [flameActive, setFlameActive] = useState(true);
     const [snowflakeActive, setSnowflakeActive] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState(null);
-    const [selectedYear, setSelectedYear] = useState(null);
+    const { selectedCountry, selectedYear } = React.useContext(MeuContexto); // Consome o contexto
     const [season, setSeason] = useState('SUMMER');
 
     useEffect(() => {
@@ -249,11 +248,22 @@ function Season() {
             try {
                 if (selectedSport) {
                     // Carrega medalhas
-                    const medalsResponse = await axios.get(`http://localhost:5000/medalhas?ano=${selectedYear || ''}&modalidade=${selectedSport}`);
+                    const medalsResponse = await axios.get('http://localhost:5000/medalhas', {
+                        params: {
+                            ano: selectedYear || '', 
+                            modalidade: selectedSport
+                        }
+                    });
                     setMedals(medalsResponse.data.medalhas);
 
                     // Carrega atletas
-                    const athletesResponse = await axios.get(`http://localhost:5000/atletas?ano=${selectedYear || ''}&pais=${selectedCountry || ''}&modalidade=${selectedSport}`);
+                    const athletesResponse = await axios.get('http://localhost:5000/atletas', {
+                        params: {
+                            ano: selectedYear || '', 
+                            pais: selectedCountry || '', 
+                            modalidade: selectedSport
+                        }
+                    });
                     setAthletes(athletesResponse.data.atletas);
                 }
             } catch (error) {
@@ -262,7 +272,7 @@ function Season() {
         };
 
         fetchData();
-    }, [selectedYear, season, selectedCountry, selectedSport]);
+    }, [selectedYear, selectedCountry, selectedSport, season]);
 
     const toggleActive = (sport) => {
         if (isActive === sport) {
@@ -289,12 +299,20 @@ function Season() {
     return (
         <MainBox>
             <MomentumBox>
-                <ButtonFlame flameActive={flameActive} snowflakeActive={snowflakeActive} onClick={handleFlameClick}>
-                    <MomentumImg src={flame} />
+                <ButtonFlame 
+                    flameActive={flameActive} 
+                    snowflakeActive={snowflakeActive} 
+                    onClick={handleFlameClick}
+                >
+                    {/* Adicione o conteúdo do botão se necessário */}
                 </ButtonFlame>
                 <h2>{season}</h2>
-                <ButtonSnowflake flameActive={flameActive} snowflakeActive={snowflakeActive} onClick={handleSnowflakeClick}>
-                    <MomentumImg src={snowflake} />
+                <ButtonSnowflake 
+                    flameActive={flameActive} 
+                    snowflakeActive={snowflakeActive} 
+                    onClick={handleSnowflakeClick}
+                >
+                    {/* Adicione o conteúdo do botão se necessário */}
                 </ButtonSnowflake>
             </MomentumBox>
             <Score>
@@ -365,4 +383,3 @@ function Season() {
 }
 
 export default Season;
-

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Children } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import gold from '../images/gold.svg';
 import silver from '../images/silver.svg';
 import bronze from '../images/bronze.svg';
 import all from '../images/all.svg';
+import { MeuContexto, MeuProvider } from './MeuContexto'; // Importa o contexto e o provider
 
 const MainBox = styled.div`
     width: 500px;
@@ -129,33 +130,29 @@ function City() {
     const trackRef = useRef(null);
     const [dates, setDates] = useState([]);
     const [medals, setMedals] = useState({});
-    const [selectedYear, setSelectedYear] = useState("Todos");
-    const [selectedCountry, setSelectedCountry] = useState(null); // Estado para o país selecionado
+    const { selectedYear, setSelectedYear, selectedCountry, setSelectedCountry } = React.useContext(MeuContexto); // Consome o contexto
 
     const handleScroll = (event) => {
         if (trackRef.current) {
             event.preventDefault();
-            const scrollAmount = event.deltaY * 0.5; // Ajuste a quantidade de rolagem
+            const scrollAmount = event.deltaY * 0.5;
             trackRef.current.scrollBy({
                 left: scrollAmount,
-                behavior: 'smooth' // Suaviza a rolagem
+                behavior: 'smooth'
             });
         }
     };
 
     useEffect(() => {
         const trackElement = trackRef.current;
-
         if (trackElement) {
             trackElement.addEventListener('wheel', handleScroll);
         }
 
-        // Carregar os anos válidos da API
         axios.get('http://localhost:5000/anos')
             .then(response => {
                 const years = response.data.anos_validos;
-                console.log('Anos recebidos da API:', years); // Debug: Verifique os anos recebidos
-                setDates(["Todos", ...years]); // Adiciona a opção "Todos"
+                setDates(["Todos", ...years]);
             })
             .catch(error => console.error('Erro ao carregar anos:', error));
 
@@ -174,7 +171,6 @@ function City() {
                         ano: selectedYear === "Todos" ? null : selectedYear
                     }
                 });
-                console.log('Medalhas recebidas da API:', response.data.medalhas); // Debug: Verifique os dados recebidos
                 setMedals(response.data.medalhas);
             } catch (error) {
                 console.error('Erro ao carregar medalhas:', error);
@@ -191,7 +187,7 @@ function City() {
                     <Year 
                         key={date} 
                         onClick={() => setSelectedYear(date)}
-                        selected={selectedYear === date} // Adiciona a propriedade `selected`
+                        selected={selectedYear === date}
                     >
                         {date}
                     </Year>
@@ -209,13 +205,12 @@ function City() {
                             <Img src={all} alt="All Medals"/>
                         </IconMedals>
                     </TopDescription>
-                    {/* Renderiza os dados de medalhas */}
                     {Object.keys(medals).length > 0 ? (
                         Object.keys(medals).map((country, index) => (
                             <Classification
                                 key={index}
-                                onClick={() => setSelectedCountry(country)} // Define o país selecionado ao clicar
-                                selected={selectedCountry === country} // Adiciona a propriedade `selected`
+                                onClick={() => setSelectedCountry(country)}
+                                selected={selectedCountry === country}
                             >
                                 <Position>{index + 1}</Position>
                                 <Country>{country}</Country>

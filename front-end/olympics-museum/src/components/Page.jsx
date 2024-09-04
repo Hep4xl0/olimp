@@ -4,7 +4,7 @@ import City from './City';
 import Season from './Season';
 import styled from 'styled-components'
 import OlympicsImage from '../images/Olympics.png'
-
+import { MyContext } from '../context/MeuContexto';
 
 const Header = styled.header`
     background: linear-gradient(90deg, #0040E5, #2D0051);
@@ -77,6 +77,8 @@ function Page() {
     const [selectedYear, setSelectedYear] = useState("2021");  // Ano padrão
     const [season, setSeason] = useState("SUMMER");
     const [selectedCountry, setSelectedCountry] = useState("United States");
+    const MyContext = 
+    React.createContext(defaultValue)
 
     useEffect(() => {
         // Carrega os anos válidos
