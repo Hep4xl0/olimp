@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'; // Importa useContext aqui
+import React, { useState, useEffect, useContext } from 'react'; 
 import styled from 'styled-components';
 import axios from 'axios';
 import flame from '../images/flame.png';
@@ -8,7 +8,6 @@ import silver from '../images/silver.svg';
 import bronze from '../images/bronze.svg';
 import all from '../images/all.svg';
 import { MeuContexto } from '../context/MeuContexto'; 
-// Estilos dos componentes (aqui mantemos a mesma estrutura para não alterar muito)
 
 const MainBox = styled.div`
     width: 500px;
@@ -42,7 +41,6 @@ const AthleteName = styled.span`
   font-family: montserrat;
 `;
 
-
 const ButtonSnowflake = styled.button`
   border: none;
   background: none;
@@ -54,6 +52,7 @@ const ButtonSnowflake = styled.button`
     opacity: ${({ snowflakeActive, flameActive }) => (snowflakeActive && !flameActive ? '1' : '0.8')};
   }
 `;
+
 const MomentumImg = styled.img`
     height: 55px;
 `;
@@ -244,11 +243,9 @@ const ClassificationAthlete = styled.div`
 `;
 
 
-
-
 function Season() {
     const [sports, setSports] = useState([]);
-    const [athletes, setAthletes] = useState([]); // Inicialize como array vazio
+    const [athletes, setAthletes] = useState([]); 
     const [medals, setMedals] = useState({});
     const [isActive, setIsActive] = useState(null);
     const [selectedSport, setSelectedSport] = useState(null);
@@ -266,37 +263,41 @@ function Season() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Definir os parâmetros da consulta
+                const params = {};
+                if (selectedYear && selectedYear !== 'Todos') params.ano = selectedYear;
+                if (selectedCountry) params.pais = selectedCountry;
+                if (selectedSport) params.modalidade = selectedSport;
+    
+                // Buscar medalhas e atletas
+                const [medalsResponse, athletesResponse] = await Promise.all([
+                    axios.get('http://localhost:5000/medalhas', { params }),
+                    axios.get('http://localhost:5000/atletas', { params })
+                ]);
+    
+                // Atualiza medalhas
+                setMedals(medalsResponse.data.medalhas || {});
+                
+                // Extrair atletas para o esporte selecionado e filtrar medalhistas
+                const athletesData = athletesResponse.data.atletas || {};
+                const filteredAthletes = Object.values(athletesData)
+                    .filter(athlete => athlete.medalha && athlete.medalha !== 'none'); // Filtra apenas atletas medalhistas
+                
                 if (selectedSport) {
-                    const medalsResponse = await axios.get('http://localhost:5000/medalhas', {
-                        params: {
-                            ano: selectedYear || '', 
-                            modalidade: selectedSport
-                        }
-                    });
-                    setMedals(medalsResponse.data.medalhas);
-
-                    const athletesResponse = await axios.get('http://localhost:5000/atletas', {
-                        params: {
-                            ano: selectedYear || '', 
-                            pais: selectedCountry || '', 
-                            modalidade: selectedSport
-                        }
-                    });
-
-                    // Verifique se a resposta é um array antes de definir o estado
-                    if (Array.isArray(athletesResponse.data.atletas)) {
-                        setAthletes(athletesResponse.data.atletas);
-                    } else {
-                        console.warn('A resposta dos atletas não é um array:', athletesResponse.data.atletas);
-                        setAthletes([]); // Defina como array vazio se não for um array
-                    }
+                    // Se um esporte estiver selecionado, filtra atletas por esporte
+                    const sportFilteredAthletes = filteredAthletes.filter(athlete => athlete.esport === selectedSport);
+                    setAthletes(sportFilteredAthletes);
+                } else {
+                    setAthletes(filteredAthletes);
                 }
+                
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
-                setAthletes([]); // Defina como array vazio em caso de erro
+                setAthletes([]);
+                setMedals({});
             }
         };
-
+    
         fetchData();
     }, [selectedYear, selectedCountry, selectedSport, season]);
 
@@ -354,7 +355,7 @@ function Season() {
                         </IconMedals>
                     </TopDescription>
 
-                    {medals[selectedCountry] && (
+                    {selectedCountry && medals[selectedCountry] && (
                         <Classification>
                             <Position>1</Position>
                             <Country>{selectedCountry}</Country>
@@ -380,9 +381,11 @@ function Season() {
                     {isActive && (
                         <AthleteBox>
                             {Array.isArray(athletes) && athletes.length > 0 ? (
-                                athletes.map((athlete, index) => (
-                                    <AthleteItem key={index}>
-                                        <AthleteName>{athlete.name}</AthleteName>
+                                athletes.map((athlete) => (
+                                    <AthleteItem key={athlete.id}>
+                                        <AthleteName>{athlete.nome}</AthleteName>
+                                        <p>Modalidade: {athlete.esport}</p>
+                                        <p>Medalha: {athlete.medalha}</p>
                                     </AthleteItem>
                                 ))
                             ) : (

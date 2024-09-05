@@ -143,9 +143,6 @@ const MedalCount = styled.div`
 `;
 
 // City.jsx
-
-
-
 function City() {
     const trackRef = useRef(null);
     const [dates, setDates] = useState([]);
@@ -188,7 +185,7 @@ function City() {
             try {
                 const response = await axios.get('http://localhost:5000/medalhas', {
                     params: {
-                        ano: selectedYear === "Todos" ? null : selectedYear
+                        ano: selectedYear !== "Todos" ? selectedYear : undefined
                     }
                 });
                 setMedals(response.data.medalhas);

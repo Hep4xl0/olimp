@@ -97,18 +97,21 @@ function Page() {
             </Header>
 
             <Windows>
+            <MeuProvider>
                 <City 
-                    years={years} 
-                    selectedYear={selectedYear} 
-                    onYearChange={handleYearChange} 
-                />
+                        years={years} 
+                        selectedYear={selectedYear} 
+                        onYearChange={handleYearChange} 
+                    />
                 <Season 
-                    selectedYear={selectedYear} 
-                    season={season} 
-                    selectedCountry={selectedCountry} 
-                    onSeasonChange={setSeason}
-                    onCountryChange={setSelectedCountry}
-                />
+                        selectedYear={selectedYear} 
+                        season={season} 
+                        selectedCountry={selectedCountry} 
+                        onSeasonChange={setSeason}
+                        onCountryChange={setSelectedCountry}
+                    />
+            </MeuProvider>
+                
             </Windows>
             
             <Footer>

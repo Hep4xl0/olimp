@@ -112,17 +112,18 @@ def obter_todos_os_atletas(ano=None, pais=None, modalidade=None):
 
     return atletas_lista
 
-# Função auxiliar para obter atletas organizados por esporte
-def obter_atletas_por_esporte(ano=None, pais=None, modalidade=None):
+def obter_todos_os_atletas(ano=None, pais=None, modalidade=None):
     query = db.session.query(
+        Atleta.id,         # Inclua o ID do atleta
         Atleta.nome,
         Atleta.esport,
         Atleta.medalha,
-        Atleta.ano
+        Atleta.ano,
+        Atleta.pais_id
     ).filter(
-        Atleta.medalha != 'None'
+        Atleta.medalha != 'None'  # Filtrar apenas atletas com medalhas
     )
-    
+
     if ano:
         if ano != "":
             query = query.filter(Atleta.ano == ano)
@@ -135,19 +136,20 @@ def obter_atletas_por_esporte(ano=None, pais=None, modalidade=None):
         if modalidade != "":
             query = query.filter(Atleta.esport == modalidade)
 
-    atletas = query.order_by(Atleta.esport, Atleta.nome).all()
+    atletas = query.order_by(Atleta.nome).all()
 
-    atletas_por_esporte = {}
-    for nome, esport, medalha, ano in atletas:
-        if esport not in atletas_por_esporte:
-            atletas_por_esporte[esport] = []
-        atletas_por_esporte[esport].append({
+    atletas_lista = []
+    for id, nome, esport, medalha, ano, pais_id in atletas:
+        atletas_lista.append({
+            'id': id,            # Adicione o ID ao dicionário
             'nome': nome,
+            'esport': esport,
             'medalha': medalha,
-            'ano': ano
+            'ano': ano,
+            'pais_id': pais_id
         })
-    
-    return atletas_por_esporte
+
+    return atletas_lista
 
 
 # Rota para obter medalhas por país e ano
@@ -167,15 +169,19 @@ def atletas():
     ano_selecionado = request.args.get('ano', type=str, default="")
     pais_selecionado = request.args.get('pais', type=str, default="")
     modalidade_selecionada = request.args.get('modalidade', type=str, default="")
-
+    
     try:
-        # Obter todos os atletas organizados por esporte
-        atletas = obter_atletas_por_esporte(ano_selecionado, pais_selecionado, modalidade_selecionada)
+        # Obter todos os atletas com filtros aplicados
+        todos_os_atletas = obter_todos_os_atletas(ano_selecionado, pais_selecionado, modalidade_selecionada)
+        
+        # Organizar os atletas em um dicionário com o ID como chave
+        atletas_dict = {atleta['id']: atleta for atleta in todos_os_atletas}
+
     except SQLAlchemyError as e:
         return jsonify({"error": str(e)}), 500
 
-    # Retornar a lista de atletas organizados por esporte
-    return jsonify(atletas=atletas)
+    # Retornar o dicionário de atletas com o ID como chave
+    return jsonify(atletas=atletas_dict, anos_validos=obter_anos_validos())
 
 @get_atletas.route('/esportes', methods=['GET'])
 def esportes():
